@@ -1,16 +1,19 @@
 using System;
 using GameCode.Core;
+using UnityEngine;
 
 namespace GameCode.Saves
 {
     [Serializable]
     public class PlayerSave
     {
-        public float healthPintsFillingPercentage;
+        [SerializeField] private float healthPointsFillingPercentage;
+
+        public float HealthPointsFillingPercentage => healthPointsFillingPercentage;
 
         public PlayerSave(Player player)
         {
-            healthPintsFillingPercentage = player.HealthPoints.FillingPercentage;
+            healthPointsFillingPercentage = player.HealthPoints.FillingPercentage;
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GameCode.Saves;
 using UnityEngine;
 
 namespace GameCode
@@ -82,11 +83,6 @@ namespace GameCode
 
             return false;
         }
-
-        private void SortInventory()
-        {
-            
-        }
         
         /// <summary>
         /// Return first free slot index. <br/>
@@ -100,6 +96,16 @@ namespace GameCode
                     return i;
 
             return -1;
+        }
+
+        public void LoadSave(IReadOnlyList<InventorySlot> loadSlots)
+        {
+            for (int i = 0; i < loadSlots.Count; i++)
+            {
+                _items[i].Clean();
+                if (!loadSlots[i].SlotIsEmpty)
+                    _items[i].SetItem(loadSlots[i].ItemConfig, loadSlots[i].CurrentValue);
+            }
         }
     }
 }

@@ -6,14 +6,28 @@ namespace GameCode.Saves
 {
     public class SaveAndLoader
     {
+        private static SaveAndLoader _instance;
+        public static SaveAndLoader Instance => _instance ??= new SaveAndLoader();
+
+        public bool Loaded { get; private set; }
+
         private const string SaveFileName = "Save";
         
         private static string SavePath => Path.Combine(Application.dataPath, SaveFileName);
         
-        private GlobalSave _globalSave;
+        private GlobalSave _globalSave = new GlobalSave();
+
+        public IReadOnlyGlobalSave GlobalSave => _globalSave;
+        
+        private SaveAndLoader()
+        {
+            TryLoad();
+            Debug.Log($"SaveAndLoader Constructor");
+        }
         
         public void UpdateInventoryData(Inventory inventory)
         {
+            Debug.Log($"SaveAndLoader Constructor");
             var newInventorySave = new InventorySave(inventory);
             _globalSave.inventorySave = newInventorySave;
         }
@@ -29,9 +43,15 @@ namespace GameCode.Saves
             BinarySerializer.Save(SavePath, _globalSave);   
         }
 
-        public void Load()
+        public void TryLoad()
         {
-            _globalSave = BinarySerializer.Load<GlobalSave>(SavePath);
+            Debug.Log($"SaveAndLoader try load");
+            if (File.Exists(SavePath))
+            {
+                Debug.Log($"SaveAndLoader loaded save");
+                _globalSave = BinarySerializer.Load<GlobalSave>(SavePath);
+                Loaded = true;
+            }
         }
     }
 }

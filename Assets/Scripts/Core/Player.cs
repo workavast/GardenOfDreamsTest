@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using CustomTimer;
 using GameCode.CollectableItems;
 using GameCode.Enemies;
+using GameCode.Saves;
 using SomeStorages;
 using UnityEngine;
 using Zenject;
@@ -29,6 +31,8 @@ namespace GameCode.Core
         private Vector2 _moveDirection;
         private bool _attack;
 
+        public event Action OnDeath;
+        
         private void Awake()
         {
             _rigidbody2D = GetComponent<Rigidbody2D>();
@@ -43,7 +47,7 @@ namespace GameCode.Core
 
             itemsPickUpZone.OnColliderEnter += OnEnterInItemsPickUpZone;
         }
-
+        
         private void Update()
         {
             _attackCooldown.Tick(Time.deltaTime);
@@ -54,6 +58,14 @@ namespace GameCode.Core
             Move(Time.fixedDeltaTime);
         }
 
+        public void LoadSave(PlayerSave playerSave)
+        {
+            var healthPointsPercentage = playerSave.HealthPointsFillingPercentage;
+            if (healthPointsPercentage <= 0)
+                healthPointsPercentage = 1;
+            _healthPoints.SetCurrentValue(_healthPoints.MaxValue * healthPointsPercentage);
+        }
+        
         private void Move(float fixedDeltaTime)
         {
             _rigidbody2D.MovePosition((Vector2)transform.position + _moveDirection * (moveSpeed * fixedDeltaTime));
@@ -89,7 +101,7 @@ namespace GameCode.Core
 
             if (_healthPoints.IsEmpty)
             {
-                Debug.Log($"Player is dead");
+                OnDeath?.Invoke();
             }
         }
         

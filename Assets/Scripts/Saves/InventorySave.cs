@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace GameCode.Saves
 {
     [Serializable]
     public class InventorySave
     {
-        public List<InventorySaveCell> saveCells;
+        [SerializeField] private List<InventorySaveCell> saveCells;
 
+        public IReadOnlyList<InventorySaveCell> SaveCells => saveCells;
+        
         public InventorySave(Inventory inventory)
         {
             saveCells = new List<InventorySaveCell>();
@@ -19,9 +22,13 @@ namespace GameCode.Saves
     [Serializable]
     public class InventorySaveCell
     {
-        public bool isEmpty;
-        public ItemId itemId;
-        public int currentCount;
+        [SerializeField] private bool isEmpty;
+        [SerializeField] private ItemId itemId;
+        [SerializeField] private int currentCount;
+
+        public bool IsEmpty => isEmpty;
+        public ItemId ItemId => itemId;
+        public int CurrentCount => currentCount;
 
         public InventorySaveCell(InventorySlot inventorySlot)
         {

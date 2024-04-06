@@ -1,10 +1,9 @@
-using System;
 using GameCode.Core;
 using UnityEngine;
 
-namespace GameCode
+namespace GameCode.UI
 {
-    public class GameplayMainScreen : MonoBehaviour
+    public class GameplayMainScreen : ScreenBase
     {
         [SerializeField] private Player player;
         [SerializeField] private Joystick joystick;
