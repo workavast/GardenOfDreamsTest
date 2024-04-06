@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using CustomTimer;
-using GameCode.Enemies;
 using GameCode.Saves;
 using SomeStorages;
 using UnityEngine;
@@ -14,6 +11,7 @@ namespace GameCode.Core
     {
         [SerializeField] private float attackDamage;
         [SerializeField] private float attackCooldown;
+        [SerializeField] [Range(0, 100)] private int magazineSize;
         [SerializeField] private float reloadTime;
         [SerializeField] private float attackByLookDistance;
         [SerializeField] private LayerMask attackByLookLayers;
@@ -24,7 +22,7 @@ namespace GameCode.Core
         [Inject] private readonly Inventory _inventory;
 
         private PickUpProcessor _pickUpProcessor;
-        private AttackProcessor _attackProcessor;
+        public AttackProcessor AttackProcessor { get; private set; }
         
         private Rigidbody2D _rigidbody2D; 
         public Vector2 LookDirection { get; private set; }
@@ -40,12 +38,12 @@ namespace GameCode.Core
             _healthPoints = new FloatStorage(healthPoints, healthPoints);
             
             _pickUpProcessor = new PickUpProcessor(itemsPickUpZone, _inventory);
-            _attackProcessor = new AttackProcessor(this, shootPoint, attackZone, attackDamage, attackCooldown,
-                reloadTime, attackByLookDistance, attackByLookLayers);
+            AttackProcessor = new AttackProcessor(this, shootPoint, attackZone, attackDamage, attackCooldown,
+                reloadTime, attackByLookDistance, attackByLookLayers, magazineSize);
         }
         
         private void Update()
-            => _attackProcessor.ManualUpdate(Time.deltaTime);
+            => AttackProcessor.ManualUpdate(Time.deltaTime);
 
         private void FixedUpdate()
             => Move(Time.fixedDeltaTime);
@@ -57,7 +55,7 @@ namespace GameCode.Core
             => _moveDirection = Vector2.zero;
 
         public void SetAttack(bool setAttack)
-            => _attackProcessor.SetAttack(setAttack);
+            => AttackProcessor.SetAttack(setAttack);
         
         public void TakeDamage(float damage)
         {

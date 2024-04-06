@@ -356,6 +356,8 @@ MonoBehaviour:
   moveSpeed: 2.5
   attackDamage: 5
   attackCooldown: 1
+  magazineSize: 20
+  reloadTime: 5
   attackByLookDistance: 50
   attackByLookLayers:
     serializedVersion: 2

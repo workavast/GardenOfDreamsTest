@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using CustomTimer;
 using GameCode.Enemies;
+using SomeStorages;
 using UnityEngine;
 
 namespace GameCode.Core
 {
-    public class AttackProcessor
+    public class AttackProcessor : IReadOnlyAttackProcessor
     {
         private readonly Player _player;
         private readonly Transform _shootPoint;
@@ -14,13 +15,16 @@ namespace GameCode.Core
         private readonly Timer _attackCooldown;
         private readonly Timer _reloadTimer;
         private readonly LayerMask _attackByLookLayers;
+        private readonly IntStorage _magazineCounter;
         
         private float _attackDamage;
         private float _attackByLookDistance;
         private bool _isAttack;
+
+        public IReadOnlySomeStorage<int> MagazineCounter => _magazineCounter;
         
         public AttackProcessor(Player player, Transform shootPoint, TriggerZone attackZone, float attackDamage, 
-            float attackCooldown, float reloadTime, float attackByLookDistance, LayerMask attackByLookLayers)
+            float attackCooldown, float reloadTime, float attackByLookDistance, LayerMask attackByLookLayers, int magazineSize)
         {
             _player = player;
             _shootPoint = shootPoint;
@@ -30,9 +34,11 @@ namespace GameCode.Core
             _reloadTimer = new Timer(reloadTime, reloadTime);
             _attackByLookDistance = attackByLookDistance;
             _attackByLookLayers = attackByLookLayers;
-            
+            _magazineCounter = new IntStorage(magazineSize, magazineSize);
+                
             _attackCooldown.OnTimerEnd += TryAttack;
-
+            _reloadTimer.OnTimerEnd += OnReloadEnd;
+            
             _attackZone.OnColliderEnter += OnEnterInAttackZone;
             _attackZone.OnColliderExit += OnExitFromAttackZone;
         }
@@ -67,6 +73,17 @@ namespace GameCode.Core
             else
                 AttackByLookDirection();
             
+            _magazineCounter.ChangeCurrentValue(-1);
+
+            if (_magazineCounter.IsEmpty)
+                _reloadTimer.Reset();
+            else
+                _attackCooldown.Reset();
+        }
+
+        private void OnReloadEnd()
+        {
+            _magazineCounter.SetCurrentValue(_magazineCounter.MaxValue);
             _attackCooldown.Reset();
         }
         
