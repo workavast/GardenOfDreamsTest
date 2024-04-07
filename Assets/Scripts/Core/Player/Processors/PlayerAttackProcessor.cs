@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 using CustomTimer;
-using GameCode.Enemies;
 using SomeStorages;
 using UnityEngine;
 
 namespace GameCode.Core
 {
-    public class AttackProcessor : IReadOnlyAttackProcessor
+    public class PlayerAttackProcessor : IReadOnlyPlayerAttackProcessor
     {
         private readonly Player _player;
         private readonly Transform _shootPoint;
         private readonly TriggerZone _attackZone;
-        private readonly List<EnemyBase> _enemiesInAttackZone = new();
+        private readonly List<ITarget> _targetsInAttackZone = new();
         private readonly Timer _attackCooldown;
         private readonly Timer _reloadTimer;
         private readonly LayerMask _attackByLookLayers;
@@ -23,7 +22,7 @@ namespace GameCode.Core
 
         public IReadOnlySomeStorage<int> MagazineCounter => _magazineCounter;
         
-        public AttackProcessor(Player player, Transform shootPoint, TriggerZone attackZone, float attackDamage, 
+        public PlayerAttackProcessor(Player player, Transform shootPoint, TriggerZone attackZone, float attackDamage, 
             float attackCooldown, float reloadTime, float attackByLookDistance, LayerMask attackByLookLayers, int magazineSize)
         {
             _player = player;
@@ -39,8 +38,8 @@ namespace GameCode.Core
             _attackCooldown.OnTimerEnd += TryAttack;
             _reloadTimer.OnTimerEnd += OnReloadEnd;
             
-            _attackZone.OnColliderEnter += OnEnterInAttackZone;
-            _attackZone.OnColliderExit += OnExitFromAttackZone;
+            _attackZone.OnEnter += OnEnterInAttackZone;
+            _attackZone.OnExit += OnExitFromAttackZone;
         }
 
         public void ManualUpdate(float time)
@@ -68,10 +67,10 @@ namespace GameCode.Core
             if(!_isAttack)
                 return;
             
-            if(_enemiesInAttackZone.Count > 0)
+            if(_targetsInAttackZone.Count > 0)
                 AttackNearestEnemy();
             else
-                AttackByLookDirection();
+                AttackByAimDirection(_player.LookDirection);
             
             _magazineCounter.ChangeCurrentValue(-1);
 
@@ -89,42 +88,41 @@ namespace GameCode.Core
         
         private void AttackNearestEnemy()
         {
-            EnemyBase targetEnemy = _enemiesInAttackZone[0];
-            float currentDistance = Vector3.Distance(_player.transform.position, targetEnemy.transform.position);
-            for (int i = 1; i < _enemiesInAttackZone.Count; i++)
+            var aimTarget = _targetsInAttackZone[0];
+            float currentDistance = Vector3.Distance(_player.transform.position, aimTarget.AimPoint.transform.position);
+            for (int i = 1; i < _targetsInAttackZone.Count; i++)
             {
-                var distance = Vector3.Distance(_player.transform.position, _enemiesInAttackZone[i].transform.position);
+                var distance = Vector3.Distance(_player.transform.position, _targetsInAttackZone[i].AimPoint.transform.position);
                 if (distance < currentDistance)
                 {
-                    targetEnemy = _enemiesInAttackZone[i];
+                    aimTarget = _targetsInAttackZone[i];
                     currentDistance = distance;
                 }
             }
             
-            targetEnemy.TakeDamage(_attackDamage);
+            AttackByAimDirection((aimTarget.AimPoint.position- _shootPoint.position).normalized);
         }
 
-        private void AttackByLookDirection()
+        private void AttackByAimDirection(Vector2 aimDirection)
         {
-            var result = Physics2D.Raycast(_shootPoint.position, _player.LookDirection, _attackByLookDistance, _attackByLookLayers);
+            var result = Physics2D.Raycast(_shootPoint.position, aimDirection, _attackByLookDistance, _attackByLookLayers);
             
-            Debug.DrawRay(_shootPoint.position, _player.LookDirection * _attackByLookDistance, Color.black, 4);
-            if (result && result.transform.TryGetComponent(out EnemyBase targetEnemy))
-                targetEnemy.TakeDamage(_attackDamage);
+            Debug.DrawRay(_shootPoint.position, aimDirection * _attackByLookDistance, Color.black, 4);
+            if (result && result.transform.TryGetComponent(out IDamageable damageable))
+                damageable.TakeDamage(_attackDamage);
         }
         
         private void OnEnterInAttackZone(Collider2D other)
         {
-            if (other.TryGetComponent(out EnemyBase enemy))
+            if (other.TryGetComponent(out ITarget target))
             {
-                if (_enemiesInAttackZone.Contains(enemy))
+                if (_targetsInAttackZone.Contains(target))
                 {
-                    Debug.LogWarning($"Enemy already enter in zone");
+                    Debug.LogWarning($"Target already enter in zone");
                     return;
                 }
                 
-                Debug.LogWarning($"Enemy enter in zone");
-                _enemiesInAttackZone.Add(enemy);
+                _targetsInAttackZone.Add(target);
                 
                 if(_attackCooldown.TimerIsEnd)
                     TryAttack();
@@ -133,8 +131,8 @@ namespace GameCode.Core
 
         private void OnExitFromAttackZone(Collider2D other)
         {
-            if (other.TryGetComponent(out EnemyBase enemy))
-                _enemiesInAttackZone.Remove(enemy);
+            if (other.TryGetComponent(out ITarget target))
+                _targetsInAttackZone.Remove(target);
         } 
     }
 }

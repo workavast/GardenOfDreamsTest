@@ -25,13 +25,13 @@ namespace GameCode
         
         public void AddItem(ItemConfigBase itemConfig, int count = 1)
         {
-            Debug.Log("try add item");
-
             int freeSlotIndex = TakeFreeInventorySlot();
-            
-            Debug.Log($"free slot index {freeSlotIndex}");
-            if(freeSlotIndex <= -1)
+
+            if (freeSlotIndex <= -1)
+            {
+                Debug.LogWarning($"No free slot. Info: {itemConfig} | {count}");
                 return;
+            }
             
             _items[freeSlotIndex].SetItem(itemConfig, count);
             
@@ -42,7 +42,7 @@ namespace GameCode
         {
             if (_items[slotIndex].SlotIsEmpty)
             {
-                Debug.LogWarning("You try change empty slot");
+                Debug.LogWarning($"You try change empty slot. Info: {slotIndex} | {changeValue}");
                 return;
             }
             
@@ -107,5 +107,7 @@ namespace GameCode
                     _items[i].SetItem(loadSlots[i].ItemConfig, loadSlots[i].CurrentValue);
             }
         }
+        
+        //TODO: need add inventory sorting
     }
 }

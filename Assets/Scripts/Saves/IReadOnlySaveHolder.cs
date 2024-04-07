@@ -1,6 +1,6 @@
 namespace GameCode.Saves
 {
-    public interface IReadOnlyGlobalSave
+    public interface IReadOnlySaveHolder
     {
         public PlayerSave PlayerSave { get; }
         public InventorySave InventorySave { get; }

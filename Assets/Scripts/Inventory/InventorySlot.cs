@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace GameCode
 {
     public class InventorySlot
@@ -11,8 +13,11 @@ namespace GameCode
         
         public void SetItem(ItemConfigBase itemConfig, int currentValue)
         {
-            if(itemConfig == null)
+            if (itemConfig == null)
+            {
+                Debug.LogWarning($"You try set null");
                 return;
+            }
             
             SlotIsEmpty = false;
             ItemConfig = itemConfig;

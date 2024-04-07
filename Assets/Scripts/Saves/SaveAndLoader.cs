@@ -15,43 +15,39 @@ namespace GameCode.Saves
         
         private static string SavePath => Path.Combine(Application.dataPath, SaveFileName);
         
-        private GlobalSave _globalSave = new GlobalSave();
+        private SaveHolder _saveHolder = new SaveHolder();
 
-        public IReadOnlyGlobalSave GlobalSave => _globalSave;
-        
-        private SaveAndLoader()
-        {
-            TryLoad();
-            Debug.Log($"SaveAndLoader Constructor");
-        }
+        public IReadOnlySaveHolder SaveHolder => _saveHolder;
         
         public void UpdateInventoryData(Inventory inventory)
         {
-            Debug.Log($"SaveAndLoader Constructor");
             var newInventorySave = new InventorySave(inventory);
-            _globalSave.inventorySave = newInventorySave;
+            _saveHolder.inventorySave = newInventorySave;
         }
         
         public void UpdatePlayerData(Player player)
         {
             var newPlayerSave = new PlayerSave(player);
-            _globalSave.playerSave = newPlayerSave;
+            _saveHolder.playerSave = newPlayerSave;
         }
         
         public void Save()
         {
-            BinarySerializer.Save(SavePath, _globalSave);   
+            BinarySerializer.Save(SavePath, _saveHolder);   
         }
 
         public void TryLoad()
         {
-            Debug.Log($"SaveAndLoader try load");
             if (File.Exists(SavePath))
             {
-                Debug.Log($"SaveAndLoader loaded save");
-                _globalSave = BinarySerializer.Load<GlobalSave>(SavePath);
+                _saveHolder = BinarySerializer.Load<SaveHolder>(SavePath);
                 Loaded = true;
             }
+        }
+
+        public void DeleteSave()
+        {
+            File.Delete(SavePath);
         }
     }
 }

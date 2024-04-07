@@ -1,7 +1,7 @@
 using UnityEngine;
 using Zenject;
 
-namespace GameCode.Enemies
+namespace GameCode.Enemies.Factory
 {
     public class EnemiesFactoryInstaller : MonoInstaller
     {

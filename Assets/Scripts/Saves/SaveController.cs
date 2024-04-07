@@ -5,19 +5,19 @@ using Zenject;
 
 namespace GameCode.Saves
 {
-    public class SceneSaveAndLoader : MonoBehaviour
+    public class SaveController : MonoBehaviour
     {
-        [SerializeField] private Player _player;
-        
-        [Inject] private readonly Inventory _inventory;
         [Inject] private readonly ItemsConfigsConverter _itemsConfigsConverter;
+        [Inject] private readonly Inventory _inventory;
+        [Inject] private readonly Player _player;
         
         private void Start()
         {
+            SaveAndLoader.Instance.TryLoad();
             if (SaveAndLoader.Instance.Loaded)
             {
-                _player.LoadSave(SaveAndLoader.Instance.GlobalSave.PlayerSave);
-                _inventory.LoadSave(ConvertInventorySave(SaveAndLoader.Instance.GlobalSave.InventorySave));
+                _player.LoadSave(SaveAndLoader.Instance.SaveHolder.PlayerSave);
+                _inventory.LoadSave(ConvertInventorySave(SaveAndLoader.Instance.SaveHolder.InventorySave));
             }
             else
             {
@@ -57,5 +57,9 @@ namespace GameCode.Saves
             
             SaveAndLoader.Instance.UpdateInventoryData(_inventory);
         }
+
+        [ContextMenu(nameof(DeleteSave))]
+        private void DeleteSave()
+            => SaveAndLoader.Instance.DeleteSave();
     }
 }

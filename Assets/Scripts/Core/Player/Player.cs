@@ -7,7 +7,7 @@ using Zenject;
 namespace GameCode.Core
 {
     [RequireComponent(typeof(Rigidbody2D))]
-    public class Player : EntityBase, IDamageable
+    public class Player : EntityBase
     {
         [SerializeField] private float attackDamage;
         [SerializeField] private float attackCooldown;
@@ -18,17 +18,18 @@ namespace GameCode.Core
         [SerializeField] private TriggerZone attackZone;
         [SerializeField] private TriggerZone itemsPickUpZone;
         [SerializeField] private Transform shootPoint;
-        
+        [SerializeField] private GameObject model;
+
         [Inject] private readonly Inventory _inventory;
 
-        private PickUpProcessor _pickUpProcessor;
-        public AttackProcessor AttackProcessor { get; private set; }
+        private PlayerPickUpProcessor _pickUpProcessor;
+        public PlayerAttackProcessor AttackProcessor { get; private set; }
         
         private Rigidbody2D _rigidbody2D; 
         public Vector2 LookDirection { get; private set; }
         private Vector2 _moveDirection;
-        private bool _attack;
-
+        private bool _lookRight = true;
+        
         public event Action OnDeath;
         
         private void Awake()
@@ -37,8 +38,8 @@ namespace GameCode.Core
             
             _healthPoints = new FloatStorage(healthPoints, healthPoints);
             
-            _pickUpProcessor = new PickUpProcessor(itemsPickUpZone, _inventory);
-            AttackProcessor = new AttackProcessor(this, shootPoint, attackZone, attackDamage, attackCooldown,
+            _pickUpProcessor = new PlayerPickUpProcessor(itemsPickUpZone, _inventory);
+            AttackProcessor = new PlayerAttackProcessor(this, shootPoint, attackZone, attackDamage, attackCooldown,
                 reloadTime, attackByLookDistance, attackByLookLayers, magazineSize);
         }
         
@@ -57,7 +58,7 @@ namespace GameCode.Core
         public void SetAttack(bool setAttack)
             => AttackProcessor.SetAttack(setAttack);
         
-        public void TakeDamage(float damage)
+        public override void TakeDamage(float damage)
         {
             _healthPoints.ChangeCurrentValue(-damage);
 
@@ -77,7 +78,26 @@ namespace GameCode.Core
         
         private void Move(float fixedDeltaTime)
         {
+            TryFlipModel();
+            
             _rigidbody2D.MovePosition((Vector2)transform.position + _moveDirection * (moveSpeed * fixedDeltaTime));
+        }
+
+        private void TryFlipModel()
+        {
+            if (_moveDirection.x < 0 && _lookRight)
+            {
+                _lookRight = false;
+                model.transform.localScale = new Vector2(-1, 1);
+            }
+            else
+            {
+                if (_moveDirection.x > 0 && !_lookRight)
+                {
+                    _lookRight = true;
+                    model.transform.localScale = new Vector2(1, 1);
+                }
+            }
         }
     }
 }

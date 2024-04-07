@@ -19,11 +19,13 @@ namespace GameCode.CollectableItems
         public ItemConfigBase PickUp(int itemCount)
         {
             ItemCount -= itemCount;
-
+            if(ItemCount < 0)
+                Debug.LogWarning($"Attention: you extract more items that collectable item have. \n" +
+                                 $"Info: {ItemConfig} | {ItemCount} | {itemCount}");
+            
             if (ItemCount <= 0)
                 Destroy(gameObject);//need use pooling
             
-            Debug.Log("PickUped item");
             return ItemConfig;
         }
     }

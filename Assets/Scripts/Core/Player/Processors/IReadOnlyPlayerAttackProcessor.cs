@@ -2,7 +2,7 @@ using SomeStorages;
 
 namespace GameCode.Core
 {
-    public interface IReadOnlyAttackProcessor
+    public interface IReadOnlyPlayerAttackProcessor
     {
         public IReadOnlySomeStorage<int> MagazineCounter { get; }
     }

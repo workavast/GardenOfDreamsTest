@@ -1,5 +1,6 @@
 using GameCode.CollectableItems.Factory;
 using GameCode.Enemies;
+using GameCode.Enemies.Factory;
 using UnityEngine;
 using Zenject;
 

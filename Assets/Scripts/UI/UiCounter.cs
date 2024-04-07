@@ -3,12 +3,12 @@ using TMPro;
 
 namespace GameCode.UI
 {
-    public class Counter
+    public class UiCounter
     {
         private readonly TMP_Text _counterText;
         private readonly IReadOnlySomeStorage<int> _counter;
         
-        public Counter(TMP_Text counterText, IReadOnlySomeStorage<int> counter)
+        public UiCounter(TMP_Text counterText, IReadOnlySomeStorage<int> counter)
         {
             _counterText = counterText;
             _counter = counter;

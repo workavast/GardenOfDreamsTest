@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using EnumValuesLibrary;
+using GameCode.Enemies.Factory;
 using UnityEngine;
 using Zenject;
 using Random = UnityEngine.Random;

@@ -5,17 +5,17 @@ namespace GameCode.Core
 {
     public class TriggerZone : MonoBehaviour
     {
-        public event Action<Collider2D> OnColliderEnter;
-        public event Action<Collider2D> OnColliderExit;
+        public event Action<Collider2D> OnEnter;
+        public event Action<Collider2D> OnExit;
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            OnColliderEnter?.Invoke(other);
+            OnEnter?.Invoke(other);
         }
 
         private void OnTriggerExit2D(Collider2D other)
         {
-            OnColliderExit?.Invoke(other);
+            OnExit?.Invoke(other);
         }
     }
 }

@@ -1,19 +1,20 @@
-using System;
 using GameCode.UI;
 using UnityEngine;
+using Zenject;
 
 namespace GameCode.Core
 {
     public class GameController : MonoBehaviour
     {
-        [SerializeField] private Player player;
         [SerializeField] private GameplayMainScreen gameplayMainScreen;
         [SerializeField] private GameplayPlayerDeathScreen gameplayPlayerDeathScreen;
-        
+
+        [Inject] private Player _player;
+
         private void Awake()
         {
             Time.timeScale = 1;
-            player.OnDeath += OnPlayerDeath;
+            _player.OnDeath += OnPlayerDeath;
         }
 
         private void OnPlayerDeath()

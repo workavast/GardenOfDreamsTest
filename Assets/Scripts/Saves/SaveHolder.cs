@@ -3,7 +3,7 @@ using System;
 namespace GameCode.Saves
 {
     [Serializable]
-    public class GlobalSave : IReadOnlyGlobalSave
+    public class SaveHolder : IReadOnlySaveHolder
     {
         public PlayerSave playerSave;
         public InventorySave inventorySave;
