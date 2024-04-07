@@ -6,7 +6,7 @@ namespace GameCode
 {
     public class Inventory
     {
-        private const int DefaultSize = 15;
+        private const int DefaultSize = 17;
 
         private readonly List<InventorySlot> _items;
         

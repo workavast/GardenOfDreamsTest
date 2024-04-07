@@ -19,18 +19,20 @@ namespace GameCode.Core
         [SerializeField] private TriggerZone itemsPickUpZone;
         [SerializeField] private Transform shootPoint;
         [SerializeField] private GameObject model;
-
+        [SerializeField] private GameObject weapon;
+        
         [Inject] private readonly Inventory _inventory;
 
         private PlayerPickUpProcessor _pickUpProcessor;
-        public PlayerAttackProcessor AttackProcessor { get; private set; }
-        
         private Rigidbody2D _rigidbody2D; 
-        public Vector2 LookDirection { get; private set; }
         private Vector2 _moveDirection;
         private bool _lookRight = true;
+
+        public PlayerAttackProcessor AttackProcessor { get; private set; }
+        public Vector2 LookDirection { get; private set; }
         
         public event Action OnDeath;
+        public event Action OnSetMoveInput;
         
         private void Awake()
         {
@@ -41,18 +43,28 @@ namespace GameCode.Core
             _pickUpProcessor = new PlayerPickUpProcessor(itemsPickUpZone, _inventory);
             AttackProcessor = new PlayerAttackProcessor(this, shootPoint, attackZone, attackDamage, attackCooldown,
                 reloadTime, attackByLookDistance, attackByLookLayers, magazineSize);
+
+            AttackProcessor.OnTargetEnterInAttackZone += SetLookByAim;
+            AttackProcessor.OnAllTargeExitFromtAttackZone += SetLookByMove;
+
+            SetLookByMove();
         }
         
         private void Update()
-            => AttackProcessor.ManualUpdate(Time.deltaTime);
+        {
+            AttackProcessor.ManualUpdate(Time.deltaTime);
+        }
 
         private void FixedUpdate()
             => Move(Time.fixedDeltaTime);
 
-        public void SetInput(Vector2 direction)
-            => LookDirection = _moveDirection = direction;
+        public void SetMoveInput(Vector2 direction)
+        {
+            _moveDirection = direction;
+            OnSetMoveInput?.Invoke();
+        }
 
-        public void ResetInput()
+        public void ResetMoveInput()
             => _moveDirection = Vector2.zero;
 
         public void SetAttack(bool setAttack)
@@ -75,11 +87,29 @@ namespace GameCode.Core
                 healthPointsPercentage = 1;
             _healthPoints.SetCurrentValue(_healthPoints.MaxValue * healthPointsPercentage);
         }
+
+        private void SetLookByMove()
+        {
+            OnSetMoveInput += UpdateLookByMove;
+            AttackProcessor.OnTargetStayInAttackZone -= UpdateLookByAim;
+        }
+
+        private void SetLookByAim()
+        {
+            OnSetMoveInput -= UpdateLookByMove;
+            AttackProcessor.OnTargetStayInAttackZone += UpdateLookByAim;
+        }
         
+        private void UpdateLookByMove()
+            => LookDirection = _moveDirection;
+                
+        private void UpdateLookByAim()
+            => LookDirection = AttackProcessor.GetLookDirection();
+
         private void Move(float fixedDeltaTime)
         {
             TryFlipModel();
-            
+            RotateWeapon();
             _rigidbody2D.MovePosition((Vector2)transform.position + _moveDirection * (moveSpeed * fixedDeltaTime));
         }
 
@@ -98,6 +128,18 @@ namespace GameCode.Core
                     model.transform.localScale = new Vector2(1, 1);
                 }
             }
+        }
+
+        private void RotateWeapon()
+        {
+            var angle = 0f;
+            
+            if(_lookRight)
+                angle = Vector2.Angle(Vector2.right, LookDirection);
+            else
+                angle = Vector2.Angle(Vector2.left, LookDirection);
+            
+            weapon.transform.localRotation = Quaternion.Euler(0, 0, angle * Mathf.Sign(LookDirection.y));
         }
     }
 }

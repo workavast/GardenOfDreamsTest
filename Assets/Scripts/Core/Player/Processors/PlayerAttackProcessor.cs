@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CustomTimer;
 using SomeStorages;
@@ -19,9 +20,15 @@ namespace GameCode.Core
         private float _attackDamage;
         private float _attackByLookDistance;
         private bool _isAttack;
-
-        public IReadOnlySomeStorage<int> MagazineCounter => _magazineCounter;
         
+        public bool TargetInAttackZone { get; private set; }
+        
+        public IReadOnlySomeStorage<int> MagazineCounter => _magazineCounter;
+
+        public event Action OnTargetEnterInAttackZone;
+        public event Action OnAllTargeExitFromtAttackZone;
+        public event Action OnTargetStayInAttackZone;
+
         public PlayerAttackProcessor(Player player, Transform shootPoint, TriggerZone attackZone, float attackDamage, 
             float attackCooldown, float reloadTime, float attackByLookDistance, LayerMask attackByLookLayers, int magazineSize)
         {
@@ -46,6 +53,9 @@ namespace GameCode.Core
         {
             _attackCooldown.Tick(time);
             _reloadTimer.Tick(time);
+            
+            if(_targetsInAttackZone.Count > 0)
+                OnTargetStayInAttackZone?.Invoke();
         }
         
         public void SetAttack(bool setAttack)
@@ -60,6 +70,13 @@ namespace GameCode.Core
             {
                 _isAttack = false;
             }
+        }
+        
+        public Vector2 GetLookDirection()
+        {
+            var target = GetNearestTarget();
+
+            return target.AimPoint.position - _shootPoint.transform.position;
         }
         
         private void TryAttack()
@@ -88,9 +105,16 @@ namespace GameCode.Core
         
         private void AttackNearestEnemy()
         {
-            var aimTarget = _targetsInAttackZone[0];
-            float currentDistance = Vector3.Distance(_player.transform.position, aimTarget.AimPoint.transform.position);
-            for (int i = 1; i < _targetsInAttackZone.Count; i++)
+            var aimTarget = GetNearestTarget();
+            
+            AttackByAimDirection((aimTarget.AimPoint.position- _shootPoint.position).normalized);
+        }
+
+        private ITarget GetNearestTarget()
+        {
+            ITarget aimTarget = null;
+            float currentDistance = float.MaxValue;
+            for (int i = 0; i < _targetsInAttackZone.Count; i++)
             {
                 var distance = Vector3.Distance(_player.transform.position, _targetsInAttackZone[i].AimPoint.transform.position);
                 if (distance < currentDistance)
@@ -99,10 +123,10 @@ namespace GameCode.Core
                     currentDistance = distance;
                 }
             }
-            
-            AttackByAimDirection((aimTarget.AimPoint.position- _shootPoint.position).normalized);
-        }
 
+            return aimTarget;
+        }
+        
         private void AttackByAimDirection(Vector2 aimDirection)
         {
             var result = Physics2D.Raycast(_shootPoint.position, aimDirection, _attackByLookDistance, _attackByLookLayers);
@@ -123,16 +147,22 @@ namespace GameCode.Core
                 }
                 
                 _targetsInAttackZone.Add(target);
-                
+                TargetInAttackZone = true;
+                OnTargetEnterInAttackZone?.Invoke();
                 if(_attackCooldown.TimerIsEnd)
                     TryAttack();
             }
         }
-
+        
         private void OnExitFromAttackZone(Collider2D other)
         {
             if (other.TryGetComponent(out ITarget target))
-                _targetsInAttackZone.Remove(target);
+                if (_targetsInAttackZone.Remove(target))
+                {
+                    TargetInAttackZone = _targetsInAttackZone.Count > 0;
+                    if(!TargetInAttackZone)
+                        OnAllTargeExitFromtAttackZone?.Invoke();
+                }
         } 
     }
 }

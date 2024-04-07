@@ -29,12 +29,12 @@ namespace GameCode.UI
         private void InputEnter()
         {
             var direction = Vector3.up * joystick.Vertical + Vector3.right * joystick.Horizontal;
-            _player.SetInput(direction);
+            _player.SetMoveInput(direction);
         }
         
         private void InputExit()
         {
-            _player.ResetInput();
+            _player.ResetMoveInput();
         }
         
         public void _PlayerAttack(bool attack)
