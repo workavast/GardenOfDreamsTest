@@ -16,7 +16,7 @@ namespace GameCode.CollectableItems
             spriteRenderer.sprite = newItemConfig.Sprite;
         }
 
-        public ItemConfigBase PickUp(int itemCount)
+        public ItemConfigBase ExtractItems(int itemCount)
         {
             ItemCount -= itemCount;
             if(ItemCount < 0)
@@ -24,7 +24,7 @@ namespace GameCode.CollectableItems
                                  $"Info: {ItemConfig} | {ItemCount} | {itemCount}");
             
             if (ItemCount <= 0)
-                Destroy(gameObject);//need use pooling
+                Destroy(gameObject);//need use pool
             
             return ItemConfig;
         }

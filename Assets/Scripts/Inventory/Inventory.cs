@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using GameCode.Saves;
 using UnityEngine;
 
 namespace GameCode
@@ -23,13 +22,13 @@ namespace GameCode
                 _items.Add(new InventorySlot());
         }
         
-        public void AddItem(ItemConfigBase itemConfig, int count = 1)
+        public void AddItemInEmptySlot(ItemConfigBase itemConfig, int count = 1)
         {
-            int freeSlotIndex = TakeFreeInventorySlot();
+            int freeSlotIndex = GetEmptySlotIndex();
 
             if (freeSlotIndex <= -1)
             {
-                Debug.LogWarning($"No free slot. Info: {itemConfig} | {count}");
+                Debug.LogWarning($"No empty slot. Info: {itemConfig} | {count}");
                 return;
             }
             
@@ -48,22 +47,22 @@ namespace GameCode
             
             _items[slotIndex].ChangeCurrentValue(changeValue);
             if(_items[slotIndex].CurrentValue <= 0)
-                DeleteItem(slotIndex);
+                CleanSlot(slotIndex);
             else
                 OnChange?.Invoke();
         }
 
-        public void DeleteItem(int slotIndex)
+        public void CleanSlot(int slotIndex)
         {
             _items[slotIndex].Clean();
             OnChange?.Invoke();
         }
 
         /// <returns>
-        /// Return index of item and number of items which can be add in stack. <br/>
+        /// Return index of slot with this itemId and number of items which can be add in stack. <br/>
         /// If inventory dont have this un full item stack, return (-1, -1)
         /// </returns>
-        public (int, int) ItemFreeStackValue(ItemId itemId)
+        public (int, int) GetSlotDataWithItemFreeStackValue(ItemId itemId)
         {
             for (var slotIndex = 0; slotIndex < _items.Count; slotIndex++)
             {
@@ -75,7 +74,7 @@ namespace GameCode
             return (-1, -1);
         }
         
-        public bool HasEmptySlot()
+        public bool HaveEmptySlot()
         {
             foreach (var item in _items)
                 if (item.SlotIsEmpty)
@@ -84,12 +83,11 @@ namespace GameCode
             return false;
         }
         
-        /// <summary>
-        /// Return first free slot index. <br/>
-        /// If inventory dont have free slot, return -1
-        /// </summary>
-        /// <returns></returns>
-        private int TakeFreeInventorySlot()
+        /// <returns>
+        /// Return index of first empty slot. <br/>
+        /// If inventory dont have empty slot, return -1
+        /// </returns>
+        private int GetEmptySlotIndex()
         {
             for (int i = 0; i < _items.Count; i++)
                 if (_items[i].SlotIsEmpty)

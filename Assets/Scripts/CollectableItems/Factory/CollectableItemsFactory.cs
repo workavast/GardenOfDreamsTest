@@ -18,6 +18,7 @@ namespace GameCode.CollectableItems.Factory
             if (!_itemConfigs.ItemConfigs.TryGetValue(id, out ItemConfigBase itemConfig))
                 throw new Exception($"ItemConfig: {id}, dont present in config {_itemConfigs}");
 
+            //need use pool
             var collectableItem = Instantiate(collectableItemPrefab,  position, Quaternion.identity, transform);
             var itemCount = Random.Range(1, itemConfig.StackMaxValue + 1);
             collectableItem.Init(itemConfig, itemCount);

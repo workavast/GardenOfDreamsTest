@@ -26,7 +26,16 @@ namespace GameCode
 
         public void ChangeCurrentValue(int changeValue)
         {
-            CurrentValue += changeValue;
+            if (SlotIsEmpty)
+            {
+                Debug.LogWarning($"You try add items in empty slot. Info: {CurrentValue} | {changeValue}");
+                return;
+            }
+
+            if(CurrentValue + changeValue > ItemConfig.StackMaxValue)
+                Debug.LogWarning($"You try add more items than stack can have. Info: {ItemConfig} | {CurrentValue} | {changeValue}");
+            
+            CurrentValue = Mathf.Clamp(CurrentValue + changeValue, 0, ItemConfig.StackMaxValue);
         }
 
         public void Clean()

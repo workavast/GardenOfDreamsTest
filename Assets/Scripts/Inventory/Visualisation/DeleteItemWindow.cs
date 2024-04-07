@@ -30,7 +30,7 @@ namespace GameCode
         
         public void _DeleteItem()
         {
-            _inventory.DeleteItem(_slotIndex);
+            _inventory.CleanSlot(_slotIndex);
             _CloseWindow();
         }
         
